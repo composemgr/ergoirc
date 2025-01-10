@@ -1,0 +1,31 @@
+name: ergoircd
+services:
+  ergo:
+    image: ghcr.io/ergochat/ergo:stable
+    container_name: ergoircd
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    environment:
+      - ERGO__NETWORK__NAME=${APP_ORG:-irc}
+      - ERGO__SERVER__NAME=${BASE_DOMAIN_NAME:-$HOSTNAME}
+      - ERGO__SERVER__LISTENERS=:6667
+      - 'ERGO__SERVER__PROXY__ALLOWED__FROM=*'
+      - ERGO__SERVER__WEBSOCKETS__ALLOWED_ORIGINS='["*"]'
+    ports:
+      - "6667:6667/tcp"
+      - "6697:6697/tcp"
+    volumes:
+      - data:/ircd
+    networks:
+      - irc
+
+volumes:
+  data:
+    name: ergo_data
+
+networks:
+  irc:
+    name: irc
+    external: false
+
