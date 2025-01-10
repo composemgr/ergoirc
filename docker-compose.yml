@@ -7,7 +7,7 @@ services:
     restart: always
     pull_policy: always
     environment:
-      - ERGO__NETWORK__NAME=${APP_ORG:-irc}
+      - ERGO__NETWORK__NAME=${APP_ORG_NAME:-irc}
       - ERGO__SERVER__NAME=${BASE_DOMAIN_NAME:-$HOSTNAME}
       - ERGO__SERVER__LISTENERS=:6667
       - 'ERGO__SERVER__PROXY__ALLOWED__FROM=*'
