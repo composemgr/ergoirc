@@ -16,7 +16,7 @@ services:
       - "6667:6667/tcp"
       - "6697:6697/tcp"
     volumes:
-      - var/lib/srv/${USER}/docker/ergochat/ergo/latest/rootfs/ergoirc:/ircd
+      - /var/lib/srv/${USER}/docker/ergochat/ergo/latest/rootfs/config/ergoirc:/ircd
     networks:
       - irc
 
