@@ -1,0 +1,43 @@
+name: ergoirc
+services:
+  server:
+    image: ghcr.io/ergochat/ergo:latest
+    container_name: ergoirc-server
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    environment:
+      - ERGO__NETWORK__NAME=${APP_ORG_NAME:-irc}
+      - ERGO__SERVER__NAME=${BASE_DOMAIN_NAME:-$HOSTNAME}
+      - ERGO__SERVER__LISTENERS=:6667
+      - 'ERGO__SERVER__PROXY__ALLOWED__FROM=*'
+      - ERGO__SERVER__WEBSOCKETS__ALLOWED_ORIGINS='["*"]'
+    ports:
+      - "6667:6667/tcp"
+      - "6697:6697/tcp"
+    volumes:
+      - /var/lib/srv/${USER}/docker/ergochat/ergo/latest/rootfs/config/ergoirc:/ircd
+    networks:
+      - irc
+
+  web:
+    image: thelounge/thelounge:latest
+    container_name: ergoirc-web
+    hostname: client
+    restart: always
+    pull_policy: always
+    ports:
+      - '172.17.0.1:59062:9000'
+    volumes:
+      - /var/lib/srv/${USER}/docker/ergochat/ergo/latest/rootfs/data/thelounge:/var/opt/thelounge
+    depends_on:
+      server:
+        condition: service_started
+    networks:
+      - irc
+
+networks:
+  irc:
+    name: irc
+    external: false
+
