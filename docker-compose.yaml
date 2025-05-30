@@ -8,9 +8,9 @@ x-logging: &default-logging
   driver: json-file
 
 services:
-  web:
+  app:
     image: thelounge/thelounge:latest
-    container_name: ergoirc-web
+    container_name: ergoirc-app
     hostname: ${BASE_HOST_NAME:-$HOSTNAME}
     restart: always
     pull_policy: always
@@ -20,7 +20,7 @@ services:
     ports:
       - '172.17.0.1:59062:9000'
     volumes:
-      - /var/lib/srv/${USER}/docker/ergochat/ergo/latest/rootfs/data/thelounge:/var/opt/thelounge
+      - '/var/lib/srv/${USER}/docker/ergo/rootfs/data/thelounge:/var/opt/thelounge'
     depends_on:
       server:
         condition: service_healthy
@@ -42,10 +42,10 @@ services:
       - 'ERGO__SERVER__NAME=${BASE_DOMAIN_NAME:-$HOSTNAME}'
       - 'ERGO__NETWORK__NAME=${APP_ORG_NAME:-irc}'
     ports:
-      - "6667:6667/tcp"
-      - "6697:6697/tcp"
+      - '6667:6667/tcp'
+      - '6697:6697/tcp'
     volumes:
-      - /var/lib/srv/${USER}/docker/ergochat/ergo/latest/rootfs/config/ergoirc:/ircd
+      - '/var/lib/srv/${USER}/docker/ergo/rootfs/config/ergoirc:/ircd'
     healthcheck:
       test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/6667' || exit 1
       interval: 10s
