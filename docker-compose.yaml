@@ -1,0 +1,61 @@
+# nginx proxy address - http://172.17.0.1:59062
+
+name: ergoirc
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: thelounge/thelounge:latest
+    container_name: ergoirc-app
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+    ports:
+      - '172.17.0.1:59062:9000'
+    volumes:
+      - './rootfs/data/ergoirc:/var/opt/thelounge'
+    depends_on:
+      server:
+        condition: service_healthy
+    networks:
+      - ergoirc
+
+  server:
+    image: ghcr.io/ergochat/ergo:latest
+    container_name: ergoirc-server
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      ERGO__SERVER__LISTENERS: :6667
+      ERGO__SERVER__PROXY__ALLOWED__FROM: *
+      ERGO__SERVER__WEBSOCKETS__ALLOWED_ORIGINS: ["*"]
+      ERGO__SERVER__NAME: ${BASE_DOMAIN_NAME:-${BASE_HOST_NAME}}
+      ERGO__NETWORK__NAME: ${APP_ORG_NAME:-IRC}
+    ports:
+      - '6667:6667/tcp'
+      - '6697:6697/tcp'
+    volumes:
+      - './rootfs/config/ergoirc:/ircd'
+    healthcheck:
+      test: timeout 10s bash -c ':> /dev/tcp/127.0.0.1/6667' || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+    networks:
+      - ergoirc
+
+networks:
+  ergoirc:
+    name: ergoirc
+    external: false
