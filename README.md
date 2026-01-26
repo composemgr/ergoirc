@@ -10,7 +10,7 @@ Ergoirc is a containerized service deployed using Docker Compose. This setup pro
 
 ### Using curl
 ```shell
-curl -q -LSsf "https://raw.githubusercontent.com/composemgr/ergoirc/main/docker-compose.yaml" | docker compose -f - up -d
+curl -q -LSsf "https://raw.githubusercontent.com/composemgr/ergoirc/main/docker-compose.yaml" -o compose.yml
 ```
 
 ### Using git
