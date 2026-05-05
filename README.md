@@ -41,8 +41,8 @@ BASE_DOMAIN_NAME=
 
 ## 📂 Volumes
 
-- `./rootfs/config/ergoirc` - Configuration files
-- `./rootfs/data/ergoirc` - Application data
+- `./volumes/config/ergoirc` - Configuration files
+- `./volumes/data/ergoirc` - Application data
 
 ## 🔐 Security
 
