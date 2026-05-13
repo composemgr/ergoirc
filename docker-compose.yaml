@@ -17,6 +17,8 @@ services:
     logging: *default-logging
     environment:
       TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: ergoirc-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - "172.17.0.1:59062:9000"
     volumes:
@@ -26,6 +28,24 @@ services:
         condition: service_healthy
     networks:
       - ergoirc
+      - proxy
+      - cloudflare
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://ergoirc-app:9000'
+      - 'cloudflare.hostname=ergoirc.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.ergoirc-app.entrypoints=http'
+      - 'traefik.http.routers.ergoirc-app-secure.tls=true'
+      - 'traefik.http.routers.ergoirc-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.ergoirc-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.ergoirc-app.middlewares=ergoirc-app-https-redirect'
+      - 'traefik.http.routers.ergoirc-app-secure.entrypoints=https'
+      - 'traefik.http.routers.ergoirc-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.ergoirc-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.ergoirc-app-secure.service=ergoirc-app'
+      - 'traefik.http.services.ergoirc-app.loadbalancer.server.port=9000'
 
   server:
     image: ghcr.io/ergochat/ergo:latest
@@ -39,6 +59,8 @@ services:
       ERGO__SERVER__LISTENERS: ":6667"
       ERGO__SERVER__NAME: ${BASE_DOMAIN_NAME:-example.com}
       ERGO__NETWORK__NAME: ${APP_ORG_NAME:-IRC}
+      CONTAINER_NAME: ergoirc-server
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
     ports:
       - "172.17.0.1:6667:6667/tcp"
       - "172.17.0.1:6697:6697/tcp"
@@ -52,8 +74,30 @@ services:
       start_period: 90s
     networks:
       - ergoirc
+      - proxy
+      - cloudflare
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://ergoirc-server:6667'
+      - 'cloudflare.hostname=ergoirc.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.ergoirc-server.entrypoints=http'
+      - 'traefik.http.routers.ergoirc-server-secure.tls=true'
+      - 'traefik.http.routers.ergoirc-server.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.ergoirc-server-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.ergoirc-server.middlewares=ergoirc-server-https-redirect'
+      - 'traefik.http.routers.ergoirc-server-secure.entrypoints=https'
+      - 'traefik.http.routers.ergoirc-server-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.ergoirc-server-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.ergoirc-server-secure.service=ergoirc-server'
+      - 'traefik.http.services.ergoirc-server.loadbalancer.server.port=6667'
 
 networks:
   ergoirc:
     name: ergoirc
     external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
